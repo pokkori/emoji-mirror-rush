@@ -8,29 +8,102 @@ const TOTAL_ROUNDS = 10;
 const ROUND_DURATION = 3000;
 
 interface EmojiChallenge {
-  emoji: string;
   label: string;
+  shortLabel: string;
   check: (b: Record<string, number>) => number;
 }
 
+// SVG face components
+const SmileFace = () => (
+  <svg viewBox="0 0 100 100" className="w-16 h-16" aria-label="笑顔" role="img">
+    <circle cx="50" cy="50" r="45" fill="#FFD700" stroke="#333" strokeWidth="2"/>
+    <circle cx="35" cy="40" r="6" fill="#333"/>
+    <circle cx="65" cy="40" r="6" fill="#333"/>
+    <path d="M 30 62 Q 50 80 70 62" stroke="#333" strokeWidth="3" fill="none" strokeLinecap="round"/>
+  </svg>
+);
+
+const SurpriseFace = () => (
+  <svg viewBox="0 0 100 100" className="w-16 h-16" aria-label="驚き顔" role="img">
+    <circle cx="50" cy="50" r="45" fill="#FFD700" stroke="#333" strokeWidth="2"/>
+    <ellipse cx="35" cy="38" rx="7" ry="9" fill="#333"/>
+    <ellipse cx="65" cy="38" rx="7" ry="9" fill="#333"/>
+    <path d="M 35 70 Q 50 82 65 70" stroke="#333" strokeWidth="2" fill="none"/>
+    <ellipse cx="50" cy="72" rx="10" ry="12" fill="#333"/>
+  </svg>
+);
+
+const AngryFace = () => (
+  <svg viewBox="0 0 100 100" className="w-16 h-16" aria-label="怒り顔" role="img">
+    <circle cx="50" cy="50" r="45" fill="#FF6B6B" stroke="#333" strokeWidth="2"/>
+    <line x1="25" y1="32" x2="45" y2="42" stroke="#333" strokeWidth="3" strokeLinecap="round"/>
+    <line x1="75" y1="32" x2="55" y2="42" stroke="#333" strokeWidth="3" strokeLinecap="round"/>
+    <ellipse cx="35" cy="46" rx="7" ry="6" fill="#333"/>
+    <ellipse cx="65" cy="46" rx="7" ry="6" fill="#333"/>
+    <path d="M 35 70 Q 50 60 65 70" stroke="#333" strokeWidth="3" fill="none" strokeLinecap="round"/>
+  </svg>
+);
+
+const LolFace = () => (
+  <svg viewBox="0 0 100 100" className="w-16 h-16" aria-label="爆笑顔" role="img">
+    <circle cx="50" cy="50" r="45" fill="#FFD700" stroke="#333" strokeWidth="2"/>
+    <path d="M 28 36 Q 35 44 42 36" stroke="#333" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+    <path d="M 58 36 Q 65 44 72 36" stroke="#333" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+    <path d="M 25 62 Q 50 86 75 62" stroke="#333" strokeWidth="3" fill="#333" strokeLinecap="round"/>
+    <ellipse cx="50" cy="72" rx="18" ry="10" fill="#CC4444"/>
+    <line x1="35" y1="72" x2="65" y2="72" stroke="#FFB6B6" strokeWidth="2"/>
+  </svg>
+);
+
+const LoadingFace = () => (
+  <svg viewBox="0 0 100 100" className="w-20 h-20 animate-bounce" aria-label="読み込み中" role="img">
+    <circle cx="50" cy="50" r="45" fill="#7c3aed" stroke="#4f46e5" strokeWidth="2"/>
+    <circle cx="35" cy="44" r="5" fill="#fff"/>
+    <circle cx="65" cy="44" r="5" fill="#fff"/>
+    <path d="M 35 65 Q 50 74 65 65" stroke="#fff" strokeWidth="2.5" fill="none" strokeLinecap="round"/>
+  </svg>
+);
+
+const IdleFace = () => (
+  <svg viewBox="0 0 100 100" className="w-24 h-24" aria-label="ゲーム待機中" role="img">
+    <circle cx="50" cy="50" r="45" fill="#7c3aed" stroke="#4f46e5" strokeWidth="2"/>
+    <circle cx="35" cy="42" r="7" fill="#fff"/>
+    <circle cx="65" cy="42" r="7" fill="#fff"/>
+    <circle cx="37" cy="42" r="3" fill="#4f46e5"/>
+    <circle cx="67" cy="42" r="3" fill="#4f46e5"/>
+    <path d="M 32 63 Q 50 76 68 63" stroke="#fff" strokeWidth="3" fill="none" strokeLinecap="round"/>
+  </svg>
+);
+
 const CHALLENGES: EmojiChallenge[] = [
   {
-    emoji: "😄", label: "Smile",
+    label: "Smile",
+    shortLabel: "SMILE",
     check: (b) => Math.min(1, ((b.mouthSmileLeft ?? 0) + (b.mouthSmileRight ?? 0)) / 0.6),
   },
   {
-    emoji: "😲", label: "Surprise!",
+    label: "Surprise!",
+    shortLabel: "WOW",
     check: (b) => Math.min(1, ((b.jawOpen ?? 0) * 0.7 + (b.browInnerUp ?? 0) * 0.3) / 0.5),
   },
   {
-    emoji: "😤", label: "Angry",
+    label: "Angry",
+    shortLabel: "ANGRY",
     check: (b) => Math.min(1, ((b.browDownLeft ?? 0) + (b.browDownRight ?? 0)) / 0.5),
   },
   {
-    emoji: "😂", label: "LOL",
+    label: "LOL",
+    shortLabel: "LOL",
     check: (b) => Math.min(1, ((b.eyeSquintLeft ?? 0) + (b.eyeSquintRight ?? 0) + (b.mouthSmileLeft ?? 0)) / 0.9),
   },
 ];
+
+const CHALLENGE_ICONS: Record<string, React.ReactNode> = {
+  Smile: <SmileFace />,
+  "Surprise!": <SurpriseFace />,
+  Angry: <AngryFace />,
+  LOL: <LolFace />,
+};
 
 function getRandomChallenge(): EmojiChallenge {
   return CHALLENGES[Math.floor(Math.random() * CHALLENGES.length)];
@@ -185,19 +258,30 @@ export default function EmojiGame() {
   if (phase === "result") {
     const maxScore = TOTAL_ROUNDS * 100;
     const pct = Math.round((totalScore / maxScore) * 100);
-    const rank = pct >= 80 ? "🏆 Expression Master!" : pct >= 60 ? "😄 Great Performer!" : pct >= 40 ? "🙂 Getting There!" : "😅 Keep Practicing!";
-    const shareText = `😄 Emoji Mirror Rush!\nScore: ${totalScore}/${maxScore} (${pct}%)\n${rank}\nCan you beat me? 👇\n#EmojiMirrorRush`;
+    const rankLabel = pct >= 80 ? "Expression Master!" : pct >= 60 ? "Great Performer!" : pct >= 40 ? "Getting There!" : "Keep Practicing!";
+    const rankIcon = pct >= 80 ? "MASTER" : pct >= 60 ? "GREAT" : pct >= 40 ? "GOOD" : "TRY";
+    const shareText = `Emoji Mirror Rush!\nScore: ${totalScore}/${maxScore} (${pct}%)\n${rankLabel}\nCan you beat me?\n#EmojiMirrorRush`;
     const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
     return (
       <div className="min-h-dvh flex items-center justify-center px-4"
         style={{ background: "linear-gradient(160deg, #0d0d0d, #1a0a2e)" }}>
         <div className="w-full max-w-sm rounded-2xl p-6 text-center"
-          style={{ background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.4)" }}>
-          <div className="text-5xl mb-2">🎭</div>
+          style={{ background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.4)" }}
+          role="region" aria-label="ゲーム結果">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full mb-2"
+            style={{ background: "rgba(124,58,237,0.3)", border: "2px solid #7c3aed" }}>
+            <span className="text-xl font-black text-purple-300">{rankIcon}</span>
+          </div>
           <h2 className="text-2xl font-black mb-1" style={{ color: "#f59e0b" }}>Game Over!</h2>
           <div className="text-5xl font-black mb-1" style={{ color: "#7c3aed" }}>{totalScore}<span className="text-xl text-purple-400">/{maxScore}</span></div>
-          <div className="text-lg font-bold mb-4 text-purple-300">{rank}</div>
-          {totalScore > highScore && <div className="text-yellow-400 font-bold mb-3">🎉 New High Score!</div>}
+          <div className="text-lg font-bold mb-4 text-purple-300">{rankLabel}</div>
+          {totalScore > highScore && (
+            <div className="text-yellow-400 font-bold mb-3 px-3 py-1 rounded-lg"
+              style={{ background: "rgba(245,158,11,0.15)", border: "1px solid rgba(245,158,11,0.4)" }}
+              role="status" aria-live="polite">
+              NEW HIGH SCORE!
+            </div>
+          )}
           <div className="rounded-xl p-3 mb-4 space-y-1" style={{ background: "rgba(0,0,0,0.3)" }}>
             {roundScores.map((s, i) => (
               <div key={i} className="flex justify-between text-sm">
@@ -213,14 +297,16 @@ export default function EmojiGame() {
           </div>
           <div className="space-y-2">
             <button onClick={() => { roundScoresRef.current = []; setPhase("idle"); loadModel(); }}
-              className="w-full py-3 rounded-xl font-black text-white"
-              style={{ background: "linear-gradient(135deg, #7c3aed, #4f46e5)" }}>
-              Play Again 😄
+              className="w-full py-3 rounded-xl font-black text-white min-h-[44px]"
+              style={{ background: "linear-gradient(135deg, #7c3aed, #4f46e5)" }}
+              aria-label="もう一度プレイする">
+              Play Again
             </button>
             <a href={shareUrl} target="_blank" rel="noopener noreferrer"
-              className="w-full py-3 rounded-xl font-bold text-white flex items-center justify-center gap-2"
-              style={{ background: "#1a1a1a", display: "flex" }}>
-              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+              className="w-full py-3 rounded-xl font-bold text-white flex items-center justify-center gap-2 min-h-[44px]"
+              style={{ background: "#1a1a1a", display: "flex" }}
+              aria-label="Xでスコアをシェアする">
+              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
               Share on X
             </a>
           </div>
@@ -231,7 +317,8 @@ export default function EmojiGame() {
 
   return (
     <div className="min-h-dvh flex flex-col items-center"
-      style={{ background: "linear-gradient(160deg, #0d0d0d, #1a0a2e)" }}>
+      style={{ background: "linear-gradient(160deg, #0d0d0d, #1a0a2e)" }}
+      role="application" aria-label="Emoji Mirror Rush ゲーム">
       {phase === "playing" && (
         <div className="w-full max-w-lg flex items-center justify-between px-4 py-2"
           style={{ background: "rgba(0,0,0,0.7)" }}>
@@ -239,43 +326,46 @@ export default function EmojiGame() {
             <div className="text-xs text-purple-400">Round</div>
             <div className="text-lg font-black text-white">{round + 1}/{TOTAL_ROUNDS}</div>
           </div>
-          <div className="text-center">
-            <div className="text-6xl leading-none">{challenge.emoji}</div>
-            <div className="text-xs text-purple-300 font-bold">{challenge.label}</div>
+          <div className="text-center flex flex-col items-center" aria-label={`お題: ${challenge.label}`}>
+            {CHALLENGE_ICONS[challenge.label]}
+            <div className="text-xs text-purple-300 font-bold mt-1">{challenge.label}</div>
           </div>
           <div className="text-center">
             <div className="text-xs text-purple-400">Time</div>
-            <div className="text-2xl font-black" style={{ color: timeLeft <= 1 ? "#ef4444" : "#fff" }}>{timeLeft}s</div>
+            <div className="text-2xl font-black" style={{ color: timeLeft <= 1 ? "#ef4444" : "#fff" }}
+              aria-label={`残り${timeLeft}秒`}>{timeLeft}s</div>
           </div>
         </div>
       )}
 
       <div className="relative w-full max-w-lg" style={{ aspectRatio: "4/3" }}>
         <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" playsInline muted
-          style={{ transform: "scaleX(-1)" }} />
+          style={{ transform: "scaleX(-1)" }} aria-label="カメラ映像" />
         <canvas ref={canvasRef} width={640} height={480}
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ display: phase === "playing" ? "block" : "none" }} />
+          style={{ display: phase === "playing" ? "block" : "none" }}
+          aria-hidden="true" />
 
         {phase !== "playing" && (
           <div className="absolute inset-0 flex flex-col items-center justify-center"
             style={{ background: "rgba(0,0,0,0.85)" }}>
             {phase === "loading" && (
               <div className="text-center">
-                <div className="text-5xl mb-3 animate-bounce">😄</div>
-                <p className="text-purple-300 animate-pulse font-bold">Loading AI model...</p>
+                <LoadingFace />
+                <p className="text-purple-300 animate-pulse font-bold mt-3">Loading AI model...</p>
                 <p className="text-purple-600 text-xs mt-1">First time may take 30 seconds</p>
               </div>
             )}
             {phase === "idle" && (
               <div className="text-center px-4">
-                <div className="text-6xl mb-3">🎭</div>
-                <h1 className="text-2xl font-black mb-3" style={{ color: "#f59e0b" }}>Emoji Mirror Rush</h1>
-                {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
+                <IdleFace />
+                <h1 className="text-2xl font-black mb-3 mt-2" style={{ color: "#f59e0b" }}>Emoji Mirror Rush</h1>
+                {error && <p className="text-red-400 text-sm mb-3" role="alert">{error}</p>}
                 <button onClick={loadModel}
-                  className="px-10 py-3 rounded-2xl font-black text-white text-lg"
-                  style={{ background: "linear-gradient(135deg, #7c3aed, #4f46e5)", boxShadow: "0 0 20px rgba(124,58,237,0.5)" }}>
-                  Start Game 😄
+                  className="px-10 py-3 rounded-2xl font-black text-white text-lg min-h-[44px]"
+                  style={{ background: "linear-gradient(135deg, #7c3aed, #4f46e5)", boxShadow: "0 0 20px rgba(124,58,237,0.5)" }}
+                  aria-label="ゲームを開始する">
+                  Start Game
                 </button>
               </div>
             )}
@@ -285,7 +375,8 @@ export default function EmojiGame() {
         {phase === "playing" && (
           <div className="absolute top-3 left-3 right-3 flex justify-between items-center">
             <div className="rounded-xl px-3 py-1 font-black text-xl"
-              style={{ background: "rgba(0,0,0,0.6)", color: liveScore >= 70 ? "#22c55e" : liveScore >= 40 ? "#f59e0b" : "#ef4444" }}>
+              style={{ background: "rgba(0,0,0,0.6)", color: liveScore >= 70 ? "#22c55e" : liveScore >= 40 ? "#f59e0b" : "#ef4444" }}
+              aria-label={`現在のスコア: ${liveScore}パーセント`} role="status" aria-live="polite">
               {liveScore}%
             </div>
           </div>
@@ -293,7 +384,7 @@ export default function EmojiGame() {
       </div>
 
       {phase === "playing" && roundScoresRef.current.length > 0 && (
-        <div className="w-full max-w-lg px-4 py-2 flex gap-1">
+        <div className="w-full max-w-lg px-4 py-2 flex gap-1" aria-label="ラウンドスコア履歴">
           {roundScoresRef.current.map((s, i) => (
             <div key={i} className="flex-1 h-2 rounded-full"
               style={{ background: s >= 70 ? "#22c55e" : s >= 40 ? "#f59e0b" : "#ef4444" }} />

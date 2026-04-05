@@ -1,0 +1,27 @@
+# 絵文字顔バトル
+> 絵文字の顔でバトルするゲーム
+
+## サービス概要
+- **カテゴリ**: Webアプリ
+- **URL**: https://emoji-mirror-rush.vercel.app
+- **提供形態**: Webブラウザで利用可能（登録不要で試せます）
+- **開発**: Claude Code + Next.js 16 + Vercel
+
+## 主要ページ
+- [トップページ](https://emoji-mirror-rush.vercel.app/): メイン機能・サービス説明
+- [ツール](https://emoji-mirror-rush.vercel.app/tool): AI機能の利用画面（一部サービス）
+- [プライバシーポリシー](https://emoji-mirror-rush.vercel.app/privacy): 個人情報の取り扱い
+- [特定商取引法に基づく表記](https://emoji-mirror-rush.vercel.app/legal): 法的情報
+
+## 利用シーン
+絵文字の顔でバトルするゲーム
+
+## 技術スタック
+- フロントエンド: Next.js 16, React 19, TypeScript, Tailwind CSS
+- AI: Claude claude-sonnet-4-6 (Anthropic)
+- バックエンド: Vercel Edge Functions, Supabase
+- 決済: KOMOJU（クレジットカード・コンビニ払い対応）
+
+## robots.txt
+AIクローラーによるインデックスを歓迎します。
+GPTBot, ClaudeBot, PerplexityBot, Googlebot-Extended のアクセスを許可しています。
